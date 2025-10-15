@@ -2,12 +2,13 @@
 
 ## Quick Fix for Current Issue
 
-The deployment error "Cannot find module '/opt/render/project/src/index.js'" occurs because Render is looking for the entry point in the wrong location. This has been fixed by:
+The deployment error "Cannot find module '/opt/render/project/src/index.js'" occurs because Render is looking for the entry point in the wrong location. Multiple solutions have been provided:
 
-1. Updated `.render.yaml` to use `rootDir: server` and `startCommand: node index.js`
-2. Added proper `main` field to `server/package.json`
-3. Provided alternative deployment configurations
-4. Created backup configuration file `.render-backup.yaml`
+1. **Updated `.render.yaml`** - Uses `rootDir: server` with `npm start`
+2. **Root-level package.json** - Modified to handle server deployment from root
+3. **Alternative configurations** - `.render-backup.yaml` and `.render-root.yaml`
+4. **Deployment script** - `deploy.js` as alternative entry point
+5. **Manual configuration options** - For Render dashboard setup
 
 ## Deployment Steps
 
@@ -79,19 +80,27 @@ If you still encounter the "Cannot find module" error:
 
 ### Option 1: Manual Configuration in Render Dashboard
 Instead of using `.render.yaml`, configure manually in Render dashboard:
+
+**Configuration A (Server Directory):**
 - **Root Directory:** `server`
 - **Build Command:** `npm install`
 - **Start Command:** `node index.js`
 
-### Option 2: Use Backup Configuration
-1. Rename `.render-backup.yaml` to `.render.yaml`
-2. This uses the same configuration but with a different service name
+**Configuration B (Root Directory):**
+- **Root Directory:** `.` (root)
+- **Build Command:** `npm run build`
+- **Start Command:** `npm start`
 
-### Option 3: Alternative Start Command
+### Option 2: Use Alternative Configuration Files
+1. **For server directory approach:** Rename `.render-backup.yaml` to `.render.yaml`
+2. **For root directory approach:** Rename `.render-root.yaml` to `.render.yaml`
+
+### Option 3: Try Different Start Commands
 Try these start commands in order:
-1. `node index.js` (current)
-2. `npm start`
-3. `node server/index.js`
+1. `npm start` (uses root package.json)
+2. `node index.js` (direct execution)
+3. `npm run start-alt` (uses deploy.js script)
+4. `node deploy.js` (alternative entry point)
 
 ### General Troubleshooting
 1. Check that all environment variables are set
