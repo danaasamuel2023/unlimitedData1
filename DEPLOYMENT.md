@@ -2,11 +2,12 @@
 
 ## Quick Fix for Current Issue
 
-The deployment error occurs because Render is looking for a `package.json` file in the root directory. This has been fixed by:
+The deployment error "Cannot find module '/opt/render/project/src/index.js'" occurs because Render is looking for the entry point in the wrong location. This has been fixed by:
 
-1. Creating a root `package.json` file that handles the monorepo structure
-2. Adding `rootDir: .` to the `.render.yaml` configuration
-3. Providing an alternative backend-only deployment option
+1. Updated `.render.yaml` to use `rootDir: server` and `startCommand: node index.js`
+2. Added proper `main` field to `server/package.json`
+3. Provided alternative deployment configurations
+4. Created backup configuration file `.render-backup.yaml`
 
 ## Deployment Steps
 
@@ -74,12 +75,30 @@ If you're still having issues with the monorepo approach, you can deploy just th
 
 ## Troubleshooting
 
-If you still encounter issues:
+If you still encounter the "Cannot find module" error:
 
+### Option 1: Manual Configuration in Render Dashboard
+Instead of using `.render.yaml`, configure manually in Render dashboard:
+- **Root Directory:** `server`
+- **Build Command:** `npm install`
+- **Start Command:** `node index.js`
+
+### Option 2: Use Backup Configuration
+1. Rename `.render-backup.yaml` to `.render.yaml`
+2. This uses the same configuration but with a different service name
+
+### Option 3: Alternative Start Command
+Try these start commands in order:
+1. `node index.js` (current)
+2. `npm start`
+3. `node server/index.js`
+
+### General Troubleshooting
 1. Check that all environment variables are set
 2. Verify the MongoDB connection string
 3. Ensure all API keys are valid
 4. Check the Render logs for specific error messages
+5. Verify that `server/index.js` exists and is the correct entry point
 
 ## Notes
 

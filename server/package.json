@@ -1,4 +1,8 @@
 {
+  "name": "senyokwame-server",
+  "version": "1.0.0",
+  "description": "Senyokwame backend API server",
+  "main": "index.js",
   "scripts": {
     "build": "echo 'No build step required'",
     "start": "node index.js"
