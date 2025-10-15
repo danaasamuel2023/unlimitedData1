@@ -1,26 +1,25 @@
 services:
   - type: web
-    name: senyokwame-backend-only
+    name: senyokwame-backend-root
     env: node
     plan: starter
-    rootDir: server
     buildCommand: npm install
-    startCommand: npm start
+    startCommand: node index.js
     envVars:
       - key: NODE_ENV
         value: production
       - key: PORT
         value: 10000
-    # Add your environment variables here
-    # - key: MONGODB_URI
-    #   value: your_mongodb_connection_string
-    # - key: JWT_SECRET
-    #   value: your_jwt_secret
-    # - key: PAYSTACK_SECRET_KEY
-    #   value: your_paystack_secret_key
-    # - key: PAYSTACK_PUBLIC_KEY
-    #   value: your_paystack_public_key
-    # - key: MNOTIFY_API_KEY
-    #   value: your_mnotify_api_key
-    # - key: ARKESEL_API_KEY
-    #   value: your_arkesel_api_key
+      # Uncomment and set these environment variables in Render dashboard:
+      # - key: MONGODB_URI
+      #   value: your_mongodb_connection_string
+      # - key: JWT_SECRET
+      #   value: your_jwt_secret
+      # - key: PAYSTACK_SECRET_KEY
+      #   value: your_paystack_secret_key
+      # - key: PAYSTACK_PUBLIC_KEY
+      #   value: your_paystack_public_key
+      # - key: MNOTIFY_API_KEY
+      #   value: your_mnotify_api_key
+      # - key: ARKESEL_API_KEY
+      #   value: your_arkesel_api_key

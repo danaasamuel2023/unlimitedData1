@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Data purchase platform with client and server components",
   "private": true,
+  "main": "index.js",
   "scripts": {
     "install-client": "cd Client && npm install",
     "install-server": "cd server && npm install",
@@ -10,8 +11,9 @@
     "build-client": "cd Client && npm run build",
     "build-server": "cd server && npm run build",
     "build": "npm run install-server",
-    "start": "cd server && node index.js",
+    "start": "node index.js",
     "start-alt": "node deploy.js",
+    "start-server": "cd server && node index.js",
     "dev": "concurrently \"cd server && npm start\" \"cd Client && npm run dev\"",
     "dev-server": "cd server && npm start",
     "dev-client": "cd Client && npm run dev"
