@@ -1,10 +1,10 @@
 services:
   - type: web
-    name: senyokwame-backend-only
+    name: senyokwame-backend
     env: node
     plan: starter
-    rootDir: server
-    buildCommand: npm install
+    rootDir: .
+    buildCommand: npm run build
     startCommand: npm start
     envVars:
       - key: NODE_ENV
