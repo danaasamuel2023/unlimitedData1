@@ -844,6 +844,63 @@ router.get('/admin/fraud-alerts', auth, async (req, res) => {
   }
 });
 
+// ✅ CREATE TEST USER ENDPOINT (for development/testing)
+router.post('/create-test-user', async (req, res) => {
+  try {
+    const { name, email, phone } = req.body;
+    console.log('🧪 Creating test user:', { name, email, phone });
+    
+    // Check if user already exists
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.json({
+        success: true,
+        message: 'Test user already exists',
+        data: {
+          userId: existingUser._id,
+          name: existingUser.name,
+          email: existingUser.email,
+          walletBalance: existingUser.walletBalance
+        }
+      });
+    }
+    
+    // Create new test user
+    const testUser = new User({
+      name: name || 'Test User',
+      email: email || 'test@example.com',
+      phone: phone || '0240000000',
+      password: 'test123', // Will be hashed by the schema
+      walletBalance: 0,
+      approvalStatus: 'approved',
+      isDisabled: false,
+      isVerified: true
+    });
+    
+    await testUser.save();
+    console.log(`✅ Test user created: ${testUser._id}`);
+    
+    return res.json({
+      success: true,
+      message: 'Test user created successfully',
+      data: {
+        userId: testUser._id,
+        name: testUser.name,
+        email: testUser.email,
+        walletBalance: testUser.walletBalance
+      }
+    });
+  } catch (error) {
+    console.error('❌ Create Test User Error:', error);
+    return res.status(500).json({
+      success: false,
+      error: 'Internal server error',
+      message: error.message,
+      code: 'INTERNAL_SERVER_ERROR'
+    });
+  }
+});
+
 // ✅ TEST CALLBACK FLOW ENDPOINT (for development/testing)
 router.post('/test-callback-flow', async (req, res) => {
   try {
@@ -878,7 +935,7 @@ router.post('/test-callback-flow', async (req, res) => {
       message: 'Test callback flow completed successfully',
       data: {
         reference,
-        callbackUrl: `${process.env.BASE_URL || 'http://localhost:5002'}/api/v1/callback?reference=${reference}`,
+        callbackUrl: `${process.env.BASE_URL || 'http://unlimiteddatagh.onrender.com'}/api/v1/callback?reference=${reference}`,
         frontendUrl: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/payment/callback?reference=${reference}`,
         testMode: true
       }

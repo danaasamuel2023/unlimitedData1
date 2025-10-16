@@ -17,7 +17,7 @@ import {
   Zap
 } from 'lucide-react';
 
-const API_BASE_URL = 'https://unlimiteddatagh.onrender.com/api/v1';
+const API_BASE_URL = 'http://localhost:5002/api/v1'; // Use local backend for testing
 
 const DataHustleDeposit = () => {
   const [amount, setAmount] = useState('');
