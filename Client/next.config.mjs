@@ -4,6 +4,22 @@ const nextConfig = {
     reactStrictMode: true,
     trailingSlash: false,
     
+    // Fix for React 19 compatibility
+    experimental: {
+      reactCompiler: false,
+    },
+    
+    // Webpack configuration for React 19
+    webpack: (config, { isServer }) => {
+      if (!isServer) {
+        config.resolve.fallback = {
+          ...config.resolve.fallback,
+          fs: false,
+        };
+      }
+      return config;
+    },
+    
     // Production optimizations
     compress: true,
     poweredByHeader: false,
