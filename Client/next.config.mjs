@@ -10,7 +10,7 @@ const nextConfig = {
     
     // Image optimization
     images: {
-      domains: ['datahustle.onrender.com', 'www.datahustle.shop'],
+      domains: ['unlimiteddatagh.onrender.com', 'www.datahustle.shop'],
       formats: ['image/webp', 'image/avif'],
     },
     

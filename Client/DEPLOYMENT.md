@@ -27,8 +27,8 @@
 
 #### Environment Variables Required
 ```env
-NEXT_PUBLIC_API_URL=https://datahustle.onrender.com/api
-NEXT_PUBLIC_SOCKET_URL=https://datahustle.onrender.com
+NEXT_PUBLIC_API_URL=https://unlimiteddatagh.onrender.com/api
+NEXT_PUBLIC_SOCKET_URL=https://unlimiteddatagh.onrender.com
 NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY=your_paystack_public_key
 NEXT_PUBLIC_ENVIRONMENT=production
 NEXT_PUBLIC_APP_NAME=DataHustle

@@ -146,7 +146,7 @@ const DashboardPage = () => {
       setIsLoading(true);
       const token = localStorage.getItem('authToken');
       
-      const res = await fetch(`https://datahustle.onrender.com/api/v1/data/user-dashboard/${userId}`, {
+      const res = await fetch(`https://unlimiteddatagh.onrender.com/api/v1/data/user-dashboard/${userId}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
