@@ -271,7 +271,7 @@ router.post('/deposit', depositLimiter, async (req, res) => {
           amount: paystackAmount,
           currency: 'GHS',
           reference,
-          callback_url: `${process.env.BASE_URL || 'https://unlimiteddatagh.com'}/api/v1/callback?reference=${reference}`,
+          callback_url: `${process.env.BASE_URL || 'http://localhost:5002'}/api/v1/callback?reference=${reference}`,
           metadata: {
             custom_fields: [
               { display_name: "User ID", variable_name: "user_id", value: userId.toString() },
@@ -479,7 +479,7 @@ router.get('/callback', async (req, res) => {
         <!DOCTYPE html>
         <html>
           <head>
-            <meta http-equiv="refresh" content="0;url=${process.env.FRONTEND_URL || 'https://unlimiteddatagh.com'}/payment/callback?error=no_reference" />
+            <meta http-equiv="refresh" content="0;url=${process.env.FRONTEND_URL || 'http://localhost:3000'}/payment/callback?error=no_reference" />
             <title>Redirecting...</title>
           </head>
           <body style="margin:0;padding:0;font-family:Arial,sans-serif;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);display:flex;align-items:center;justify-content:center;min-height:100vh;">
@@ -501,7 +501,7 @@ router.get('/callback', async (req, res) => {
       <!DOCTYPE html>
       <html>
         <head>
-          <meta http-equiv="refresh" content="2;url=${process.env.FRONTEND_URL || 'https://unlimiteddatagh.com'}/payment/callback?reference=${reference}" />
+          <meta http-equiv="refresh" content="2;url=${process.env.FRONTEND_URL || 'http://localhost:3000'}/payment/callback?reference=${reference}" />
           <title>Processing Payment...</title>
         </head>
         <body style="margin:0;padding:0;font-family:Arial,sans-serif;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);display:flex;align-items:center;justify-content:center;min-height:100vh;">
@@ -515,7 +515,7 @@ router.get('/callback', async (req, res) => {
           <script>
             // Instant redirect after 2 seconds
             setTimeout(() => {
-              window.location.href = '${process.env.FRONTEND_URL || 'https://unlimiteddatagh.com'}/payment/callback?reference=${reference}';
+              window.location.href = '${process.env.FRONTEND_URL || 'http://localhost:3000'}/payment/callback?reference=${reference}';
             }, 2000);
           </script>
         </body>
@@ -593,7 +593,7 @@ router.get('/callback', async (req, res) => {
       <!DOCTYPE html>
       <html>
         <head>
-          <meta http-equiv="refresh" content="2;url=${process.env.FRONTEND_URL || 'https://unlimiteddatagh.com'}/payment/callback?error=processing_error" />
+          <meta http-equiv="refresh" content="2;url=${process.env.FRONTEND_URL || 'http://localhost:3000'}/payment/callback?error=processing_error" />
           <title>Redirecting...</title>
         </head>
         <body style="margin:0;padding:0;font-family:Arial,sans-serif;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);display:flex;align-items:center;justify-content:center;min-height:100vh;">
@@ -841,6 +841,56 @@ router.get('/admin/fraud-alerts', auth, async (req, res) => {
   } catch (error) {
     console.error('Fraud Alerts Error:', error);
     return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// ✅ TEST CALLBACK FLOW ENDPOINT (for development/testing)
+router.post('/test-callback-flow', async (req, res) => {
+  try {
+    const { userId, amount, email } = req.body;
+    console.log('🧪 Test callback flow request:', { userId, amount, email });
+    
+    // Validate inputs
+    if (!userId || !amount || !email) {
+      return res.status(400).json({
+        success: false,
+        error: 'Missing required fields: userId, amount, email',
+        code: 'MISSING_FIELDS'
+      });
+    }
+    
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid user ID format',
+        code: 'INVALID_USER_ID_FORMAT'
+      });
+    }
+    
+    // Create a test reference
+    const reference = `TEST-${crypto.randomBytes(8).toString('hex')}-${Date.now()}`;
+    
+    // Simulate successful payment processing
+    console.log(`✅ Test payment successful: ${reference}`);
+    
+    return res.json({
+      success: true,
+      message: 'Test callback flow completed successfully',
+      data: {
+        reference,
+        callbackUrl: `${process.env.BASE_URL || 'http://localhost:5002'}/api/v1/callback?reference=${reference}`,
+        frontendUrl: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/payment/callback?reference=${reference}`,
+        testMode: true
+      }
+    });
+  } catch (error) {
+    console.error('❌ Test Callback Flow Error:', error);
+    return res.status(500).json({
+      success: false,
+      error: 'Internal server error',
+      message: error.message,
+      code: 'INTERNAL_SERVER_ERROR'
+    });
   }
 });
 
