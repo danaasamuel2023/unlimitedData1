@@ -93,22 +93,26 @@ export default function DepositPage() {
     } catch (err) {
       console.error('Deposit error:', err);
       
-      const errorData = err.response?.data;
-      
-      if (errorData?.error === 'Account is disabled') {
-        setAcctStatus('disabled');
-        setStatusReason(errorData.disableReason || 'No reason provided');
-        setShowModal(true);
-      } else if (errorData?.error === 'Account not approved') {
-        if (errorData.approvalStatus === 'pending') {
-          setAcctStatus('pending');
-        } else {
-          setAcctStatus('not-approved');
-          setStatusReason(errorData.reason || 'Your account has not been approved.');
-        }
-        setShowModal(true);
+      if (err.message?.includes('500') || err.message?.includes('Internal Server Error')) {
+        setErrorMsg('Payment service is temporarily unavailable. Please try again in a few minutes or contact support.');
       } else {
-        setErrorMsg(errorData?.error || 'Failed to process deposit. Please try again.');
+        const errorData = err.response?.data;
+        
+        if (errorData?.error === 'Account is disabled') {
+          setAcctStatus('disabled');
+          setStatusReason(errorData.disableReason || 'No reason provided');
+          setShowModal(true);
+        } else if (errorData?.error === 'Account not approved') {
+          if (errorData.approvalStatus === 'pending') {
+            setAcctStatus('pending');
+          } else {
+            setAcctStatus('not-approved');
+            setStatusReason(errorData.reason || 'Your account has not been approved.');
+          }
+          setShowModal(true);
+        } else {
+          setErrorMsg(errorData?.error || 'Failed to process deposit. Please try again.');
+        }
       }
     } finally {
       setIsSubmitting(false);

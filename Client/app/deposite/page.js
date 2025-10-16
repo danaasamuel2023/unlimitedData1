@@ -114,7 +114,12 @@ const DataHustleDeposit = () => {
       }
     } catch (err) {
       console.error('Payment initialization error:', err);
-      setErrorMsg('Network error. Please check your connection.');
+      
+      if (err.message?.includes('500') || err.message?.includes('Internal Server Error')) {
+        setErrorMsg('Payment service is temporarily unavailable. Please try again in a few minutes or contact support at support@unlimiteddatagh.com');
+      } else {
+        setErrorMsg('Network error. Please check your connection and try again.');
+      }
     } finally {
       setIsLoading(false);
     }
