@@ -23,8 +23,8 @@ PORT=10000
 MONGODB_URI=your_mongodb_connection_string
 JWT_SECRET=your_jwt_secret_key
 JWT_EXPIRES_IN=7d
-PAYSTACK_SECRET_KEY=your_paystack_secret_key
-PAYSTACK_PUBLIC_KEY=your_paystack_public_key
+PAYSTACK_SECRET_KEY=sk_live_your_paystack_secret_key_here
+PAYSTACK_PUBLIC_KEY=pk_live_your_paystack_public_key_here
 MNOTIFY_API_KEY=your_mnotify_api_key
 ARKESEL_API_KEY=your_arkesel_api_key
 ```

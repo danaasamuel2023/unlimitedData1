@@ -52,7 +52,7 @@ Create a `.env.local` file in the root directory with the following variables:
 ```env
 NEXT_PUBLIC_API_URL=https://your-api-url.com/api
 NEXT_PUBLIC_SOCKET_URL=https://your-api-url.com
-NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY=your_paystack_public_key
+NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY=pk_live_6c2f71cb00f87a32fb593bc0c679cfd28f5ab2d3
 NEXT_PUBLIC_ENVIRONMENT=production
 NEXT_PUBLIC_APP_NAME=DataHustle
 NEXT_PUBLIC_APP_URL=https://unlimiteddatagh.com
