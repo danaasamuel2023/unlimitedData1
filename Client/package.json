@@ -2,6 +2,7 @@
   "name": "client",
   "version": "0.1.0",
   "private": true,
+  "_comment": "Force deployment with Tailwind v3 fix",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
