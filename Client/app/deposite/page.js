@@ -17,7 +17,7 @@ import {
   Zap
 } from 'lucide-react';
 
-const API_BASE_URL = 'http://localhost:5002/api/v1'; // Use local backend for testing
+const API_BASE_URL = 'https://unlimiteddatagh.onrender.com/api/v1'; // Use deployed backend
 
 const DataHustleDeposit = () => {
   const [amount, setAmount] = useState('');
@@ -84,12 +84,10 @@ const DataHustleDeposit = () => {
     setErrorMsg('');
     
     try {
-      const token = localStorage.getItem('authToken');
       const res = await fetch(`${API_BASE_URL}/deposit`, {
         method: 'POST',
         headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
           userId,

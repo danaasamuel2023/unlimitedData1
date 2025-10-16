@@ -73,7 +73,7 @@ export default function DepositPage() {
     setSuccessMsg('');
     
     try {
-      const res = await fetch('http://localhost:5002/api/v1/deposit', { // Use local backend for testing
+      const res = await fetch('https://unlimiteddatagh.onrender.com/api/v1/deposit', { // Use deployed backend
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
