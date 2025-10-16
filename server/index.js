@@ -46,7 +46,7 @@ app.use('/api/v1', HubnetAt);
 app.use('/api',AdminManagement)
 app.use('/api/v1', passreset);
 app.use('/api/reports', Report);
-app.use('/api/v1', DepositeMorle);
+app.use('/api/v1/mobile', DepositeMorle);
 app.use('/api', approveuser)
 app.use('/api', registerFriend);
 app.use('/api', bulkUpload);
