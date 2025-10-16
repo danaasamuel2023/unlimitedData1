@@ -195,7 +195,6 @@ const apiKeySchema = new Schema({
     }
 });
 
-apiKeySchema.index({ key: 1 });
 apiKeySchema.index({ userId: 1 });
 
 const OrderReportSchema = new mongoose.Schema({
