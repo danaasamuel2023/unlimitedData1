@@ -1,12 +1,68 @@
 'use client'
 import React, { useState, useEffect } from 'react';
 import { CreditCard, Package, Database, DollarSign, TrendingUp, Calendar, X, AlertCircle, PlusCircle, User, BarChart2, Clock, Activity, ArrowRight, Info, Timer } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { AnimatedCounter, CurrencyCounter } from './Animation';
-import DailySalesChart from '@/app/week/page';
+
+// Animation Components
+const AnimatedCounter = ({ value, duration = 1000 }) => {
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    let startTime;
+    let animationFrame;
+
+    const animate = (currentTime) => {
+      if (!startTime) startTime = currentTime;
+      const progress = Math.min((currentTime - startTime) / duration, 1);
+      
+      setCount(Math.floor(progress * value));
+
+      if (progress < 1) {
+        animationFrame = requestAnimationFrame(animate);
+      }
+    };
+
+    animationFrame = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(animationFrame);
+  }, [value, duration]);
+
+  return <span>{count}</span>;
+};
+
+const CurrencyCounter = ({ value, duration = 1500 }) => {
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    let startTime;
+    let animationFrame;
+
+    const animate = (currentTime) => {
+      if (!startTime) startTime = currentTime;
+      const progress = Math.min((currentTime - startTime) / duration, 1);
+      
+      const easeOutQuart = 1 - Math.pow(1 - progress, 4);
+      setCount(easeOutQuart * value);
+
+      if (progress < 1) {
+        animationFrame = requestAnimationFrame(animate);
+      }
+    };
+
+    animationFrame = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(animationFrame);
+  }, [value, duration]);
+
+  return (
+    <span>
+      {new Intl.NumberFormat('en-GH', {
+        style: 'currency',
+        currency: 'GHS',
+        minimumFractionDigits: 2
+      }).format(count)}
+    </span>
+  );
+};
 
 const DashboardPage = () => {
-  const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
   const [userName, setUserName] = useState('');
   const [stats, setStats] = useState({
@@ -28,19 +84,24 @@ const DashboardPage = () => {
   });
 
   const viewAllOrders = () => {
-    router.push('/orders');
+    if (typeof window !== 'undefined') {
+      window.location.href = '/orders';
+    }
   };
 
   const goToTransactions = () => {
-    router.push('/myorders');
+    if (typeof window !== 'undefined') {
+      window.location.href = '/myorders';
+    }
   };
 
   const goToTopup = () => {
-    router.push('/topup');
+    if (typeof window !== 'undefined') {
+      window.location.href = '/topup';
+    }
   };
 
   const goToNetwork = (network) => {
-    // Check if network is in stock before navigating
     const inventoryKey = network.toLowerCase();
     if (!networkInventory[inventoryKey]?.inStock) {
       alert(`${network.toUpperCase()} bundles are currently out of stock. Please try another network.`);
@@ -52,7 +113,10 @@ const DashboardPage = () => {
       'airteltigo': '/at-ishare',
       'telecel': '/TELECEL'
     };
-    router.push(routes[network] || '/');
+    
+    if (typeof window !== 'undefined') {
+      window.location.href = routes[network] || '/';
+    }
   };
 
   // Check inventory for all networks
@@ -87,7 +151,6 @@ const DashboardPage = () => {
       } catch (error) {
         console.error(`❌ Failed to check ${network.key} inventory:`, error);
         
-        // Default to out of stock if API fails
         setNetworkInventory(prev => ({
           ...prev,
           [network.key]: {
@@ -111,9 +174,11 @@ const DashboardPage = () => {
   };
 
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
     const userDataStr = localStorage.getItem('userData');
     if (!userDataStr) {
-      router.push('/SignUp');
+      window.location.href = '/SignUp';
       return;
     }
 
@@ -126,10 +191,8 @@ const DashboardPage = () => {
       setDisplayNotice(false);
     }
 
-    // Check network inventory on mount
     checkNetworkInventory();
     
-    // Set up auto-refresh every 30 seconds
     const inventoryInterval = setInterval(() => {
       console.log('🔄 Auto-refreshing network inventory...');
       checkNetworkInventory();
@@ -139,7 +202,7 @@ const DashboardPage = () => {
       clearInterval(inventoryInterval);
       console.log('🛑 Network inventory auto-refresh stopped');
     };
-  }, [router]);
+  }, []);
 
   const loadDashboard = async (userId) => {
     try {
@@ -214,7 +277,15 @@ const DashboardPage = () => {
 
   const hideNotice = () => {
     setDisplayNotice(false);
-    localStorage.setItem('dataDeliveryNoticeDismissed', 'true');
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('dataDeliveryNoticeDismissed', 'true');
+    }
+  };
+
+  const navigateTo = (path) => {
+    if (typeof window !== 'undefined') {
+      window.location.href = path;
+    }
   };
 
   if (isLoading) {
@@ -303,12 +374,11 @@ const DashboardPage = () => {
                   className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors text-xs sm:text-sm font-medium flex-1 sm:flex-none justify-center"
                 >
                   <PlusCircle className="w-4 h-4" />
-                  <span className="hidden xs:inline">Top Up</span>
-                  <span className="xs:hidden">Top Up</span>
+                  <span>Top Up</span>
                 </button>
                 
                 <button 
-                  onClick={() => router.push('/orders')}
+                  onClick={() => navigateTo('/orders')}
                   className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors text-xs sm:text-sm font-medium flex-1 sm:flex-none justify-center"
                 >
                   <Package className="w-4 h-4" />
@@ -355,7 +425,6 @@ const DashboardPage = () => {
                 Select Network
               </h2>
               
-              {/* Refresh Button */}
               <button
                 onClick={handleRefreshInventory}
                 disabled={networkInventory.mtn.loading || networkInventory.airteltigo.loading || networkInventory.telecel.loading}
@@ -380,7 +449,6 @@ const DashboardPage = () => {
                     : 'bg-gradient-to-br from-gray-400 to-gray-500 cursor-not-allowed opacity-60'
                 }`}
               >
-                {/* Stock Status Badge */}
                 <div className="absolute top-2 right-2">
                   <div className={`flex items-center px-2 py-1 rounded-full text-xs font-bold shadow-md ${
                     networkInventory.mtn.loading 
@@ -403,11 +471,17 @@ const DashboardPage = () => {
                 </div>
                 
                 <div className="flex sm:flex-col items-center sm:text-center gap-3 sm:gap-0">
-                  <div className="w-12 h-12 sm:w-16 sm:h-16 sm:mx-auto sm:mb-3 bg-white rounded-lg flex items-center justify-center shadow-md flex-shrink-0">
-                    <span className="text-lg sm:text-xl font-bold text-yellow-500">MTN</span>
+                  <div className="w-14 h-14 sm:w-20 sm:h-20 sm:mx-auto sm:mb-3 bg-white rounded-xl flex items-center justify-center shadow-lg flex-shrink-0 p-2">
+                    <svg viewBox="0 0 100 100" className="w-full h-full">
+                      <circle cx="50" cy="50" r="45" fill="#FFCC00"/>
+                      <text x="50" y="58" fontSize="36" fontWeight="bold" fill="#000000" textAnchor="middle" fontFamily="Arial, sans-serif">
+                        MTN
+                      </text>
+                      <circle cx="50" cy="50" r="42" fill="none" stroke="#000000" strokeWidth="2"/>
+                    </svg>
                   </div>
                   <div className="flex-1 sm:flex-none text-left sm:text-center">
-                    <p className="text-sm sm:text-base font-bold text-white">MTN Mobile Money</p>
+                    <p className="text-sm sm:text-base font-bold text-white">MTN Ghana</p>
                     <p className="text-xs text-yellow-100 mt-0.5 sm:mt-1">
                       {networkInventory.mtn.inStock ? 'Fast & Reliable' : 'Currently Unavailable'}
                     </p>
@@ -425,7 +499,6 @@ const DashboardPage = () => {
                     : 'bg-gradient-to-br from-gray-400 to-gray-500 cursor-not-allowed opacity-60'
                 }`}
               >
-                {/* Stock Status Badge */}
                 <div className="absolute top-2 right-2">
                   <div className={`flex items-center px-2 py-1 rounded-full text-xs font-bold shadow-md ${
                     networkInventory.airteltigo.loading 
@@ -448,8 +521,20 @@ const DashboardPage = () => {
                 </div>
                 
                 <div className="flex sm:flex-col items-center sm:text-center gap-3 sm:gap-0">
-                  <div className="w-12 h-12 sm:w-16 sm:h-16 sm:mx-auto sm:mb-3 bg-white rounded-lg flex items-center justify-center shadow-md flex-shrink-0">
-                    <span className="text-sm sm:text-sm font-bold text-red-600">AT</span>
+                  <div className="w-14 h-14 sm:w-20 sm:h-20 sm:mx-auto sm:mb-3 bg-white rounded-xl flex items-center justify-center shadow-lg flex-shrink-0 p-2">
+                    <svg viewBox="0 0 100 100" className="w-full h-full">
+                      <defs>
+                        <linearGradient id="atGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                          <stop offset="0%" style={{stopColor: '#ED1C24', stopOpacity: 1}} />
+                          <stop offset="100%" style={{stopColor: '#C1272D', stopOpacity: 1}} />
+                        </linearGradient>
+                      </defs>
+                      <circle cx="50" cy="50" r="45" fill="url(#atGradient)"/>
+                      <path d="M 35 40 L 50 25 L 65 40 L 50 35 Z" fill="white"/>
+                      <text x="50" y="70" fontSize="18" fontWeight="bold" fill="white" textAnchor="middle" fontFamily="Arial, sans-serif">
+                        AirtelTigo
+                      </text>
+                    </svg>
                   </div>
                   <div className="flex-1 sm:flex-none text-left sm:text-center">
                     <p className="text-sm sm:text-base font-bold text-white">AirtelTigo</p>
@@ -466,11 +551,10 @@ const DashboardPage = () => {
                 disabled={!networkInventory.telecel.inStock}
                 className={`relative p-4 sm:p-6 rounded-lg transition-all active:scale-95 shadow-lg ${
                   networkInventory.telecel.inStock 
-                    ? 'bg-gradient-to-br from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 cursor-pointer' 
+                    ? 'bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 cursor-pointer' 
                     : 'bg-gradient-to-br from-gray-400 to-gray-500 cursor-not-allowed opacity-60'
                 }`}
               >
-                {/* Stock Status Badge */}
                 <div className="absolute top-2 right-2">
                   <div className={`flex items-center px-2 py-1 rounded-full text-xs font-bold shadow-md ${
                     networkInventory.telecel.loading 
@@ -493,12 +577,26 @@ const DashboardPage = () => {
                 </div>
                 
                 <div className="flex sm:flex-col items-center sm:text-center gap-3 sm:gap-0">
-                  <div className="w-12 h-12 sm:w-16 sm:h-16 sm:mx-auto sm:mb-3 bg-white rounded-lg flex items-center justify-center shadow-md flex-shrink-0">
-                    <span className="text-base sm:text-base font-bold text-purple-600">TEL</span>
+                  <div className="w-14 h-14 sm:w-20 sm:h-20 sm:mx-auto sm:mb-3 bg-white rounded-xl flex items-center justify-center shadow-lg flex-shrink-0 p-2">
+                    <svg viewBox="0 0 100 100" className="w-full h-full">
+                      <defs>
+                        <linearGradient id="telecelGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                          <stop offset="0%" style={{stopColor: '#0066CC', stopOpacity: 1}} />
+                          <stop offset="100%" style={{stopColor: '#004B9B', stopOpacity: 1}} />
+                        </linearGradient>
+                      </defs>
+                      <rect x="10" y="10" width="80" height="80" rx="12" fill="url(#telecelGradient)"/>
+                      <circle cx="35" cy="35" r="8" fill="white"/>
+                      <circle cx="65" cy="35" r="8" fill="white"/>
+                      <path d="M 30 55 Q 50 70 70 55" fill="none" stroke="white" strokeWidth="4" strokeLinecap="round"/>
+                      <text x="50" y="90" fontSize="14" fontWeight="bold" fill="white" textAnchor="middle" fontFamily="Arial, sans-serif">
+                        Telecel
+                      </text>
+                    </svg>
                   </div>
                   <div className="flex-1 sm:flex-none text-left sm:text-center">
-                    <p className="text-sm sm:text-base font-bold text-white">Telecel</p>
-                    <p className="text-xs text-purple-100 mt-0.5 sm:mt-1">
+                    <p className="text-sm sm:text-base font-bold text-white">Telecel Ghana</p>
+                    <p className="text-xs text-blue-100 mt-0.5 sm:mt-1">
                       {networkInventory.telecel.inStock ? 'Growing Network' : 'Currently Unavailable'}
                     </p>
                   </div>
@@ -506,7 +604,6 @@ const DashboardPage = () => {
               </button>
             </div>
             
-            {/* Last Checked Timestamp */}
             {(networkInventory.mtn.lastChecked || networkInventory.airteltigo.lastChecked || networkInventory.telecel.lastChecked) && (
               <div className="text-xs text-gray-500 dark:text-gray-400 mt-3 text-right">
                 Last checked: {(networkInventory.mtn.lastChecked || networkInventory.airteltigo.lastChecked || networkInventory.telecel.lastChecked)?.toLocaleTimeString()}
@@ -518,7 +615,6 @@ const DashboardPage = () => {
         {/* Orders and Revenue Stats */}
         <div className="mb-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {/* Orders */}
             <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 sm:p-6">
               <div className="flex items-start justify-between mb-2">
                 <div className="w-10 h-10 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg flex items-center justify-center">
@@ -535,7 +631,6 @@ const DashboardPage = () => {
               <p className="text-xs text-gray-600 dark:text-gray-400">Total transactions</p>
             </div>
 
-            {/* Revenue */}
             <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 sm:p-6">
               <div className="flex items-start justify-between mb-2">
                 <div className="w-10 h-10 bg-green-50 dark:bg-green-900/20 rounded-lg flex items-center justify-center">
@@ -618,7 +713,7 @@ const DashboardPage = () => {
           ].map((action, idx) => (
             <button
               key={idx}
-              onClick={action.onClick || (() => router.push(action.path))}
+              onClick={action.onClick || (() => navigateTo(action.path))}
               className="p-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
             >
               <action.icon className="w-5 h-5 text-gray-600 dark:text-gray-400 mx-auto mb-2" />
