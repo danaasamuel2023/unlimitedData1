@@ -131,25 +131,104 @@ const checkSuspiciousActivity = async (userId, ip) => {
 router.post('/deposit', depositLimiter, async (req, res) => {
   try {
     const { userId, amount, email } = req.body;
-    if (!userId || !amount || amount <= 0) {
-      return res.status(400).json({ success: false, error: 'Invalid deposit details' });
+    
+    // Enhanced input validation
+    if (!userId) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'User ID is required',
+        code: 'MISSING_USER_ID'
+      });
     }
+    
+    if (!amount || amount <= 0) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Valid amount is required (must be greater than 0)',
+        code: 'INVALID_AMOUNT'
+      });
+    }
+    
+    if (!email || !email.includes('@')) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Valid email address is required',
+        code: 'INVALID_EMAIL'
+      });
+    }
+    
+    // Validate MongoDB ObjectId format
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Invalid user ID format',
+        code: 'INVALID_USER_ID_FORMAT'
+      });
+    }
+    
+    console.log(`🔍 Looking up user: ${userId}`);
     const user = await User.findById(userId);
     if (!user) {
-      return res.status(404).json({ success: false, error: 'User not found' });
+      console.log(`❌ User not found: ${userId}`);
+      return res.status(404).json({ 
+        success: false, 
+        error: 'User account not found',
+        code: 'USER_NOT_FOUND'
+      });
     }
+    
+    console.log(`✅ User found: ${user.name} (${user.email})`);
+    // Check account status
     if (user.isDisabled) {
+      console.log(`❌ Account disabled for user: ${userId}`);
       return res.status(403).json({
         success: false,
         error: 'Account disabled',
         message: 'Your account has been disabled',
-        disableReason: user.disableReason || 'No reason provided'
+        disableReason: user.disableReason || 'No reason provided',
+        code: 'ACCOUNT_DISABLED'
       });
     }
-    const depositAmount = parseFloat(amount);
-    if (depositAmount > 50000) {
-      return res.status(400).json({ success: false, error: 'Maximum deposit is GHS 50,000' });
+    
+    // Check approval status
+    if (user.approvalStatus === 'pending') {
+      console.log(`⚠️ Account pending approval for user: ${userId}`);
+      return res.status(403).json({
+        success: false,
+        error: 'Account pending approval',
+        message: 'Your account is pending approval. Please contact support.',
+        code: 'ACCOUNT_PENDING'
+      });
     }
+    
+    if (user.approvalStatus === 'rejected') {
+      console.log(`❌ Account rejected for user: ${userId}`);
+      return res.status(403).json({
+        success: false,
+        error: 'Account not approved',
+        message: 'Your account has not been approved. Please contact support.',
+        code: 'ACCOUNT_REJECTED'
+      });
+    }
+    
+    const depositAmount = parseFloat(amount);
+    if (depositAmount < 10) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Minimum deposit is GHS 10',
+        code: 'AMOUNT_TOO_LOW'
+      });
+    }
+    
+    if (depositAmount > 50000) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Maximum deposit is GHS 50,000',
+        code: 'AMOUNT_TOO_HIGH'
+      });
+    }
+    
+    console.log(`💰 Processing deposit: GHS ${depositAmount} for user ${user.name}`);
     const fee = depositAmount * FEE_PERCENTAGE;
     const totalAmountWithFee = depositAmount + fee;
     const clientIP = req.ip || req.headers['x-forwarded-for'] || req.connection.remoteAddress;
@@ -179,43 +258,86 @@ router.post('/deposit', depositLimiter, async (req, res) => {
       }
     });
     await transaction.save();
+    console.log(`💾 Transaction saved: ${reference}`);
+    
     const paystackAmount = Math.round(totalAmountWithFee * 100);
-    const paystackResponse = await axios.post(
-      `${PAYSTACK_BASE_URL}/transaction/initialize`,
-      {
-        email: email || user.email,
-        amount: paystackAmount,
-        currency: 'GHS',
+    console.log(`💳 Initializing Paystack payment: GHS ${totalAmountWithFee} (${paystackAmount} pesewas)`);
+    
+    try {
+      const paystackResponse = await axios.post(
+        `${PAYSTACK_BASE_URL}/transaction/initialize`,
+        {
+          email: email || user.email,
+          amount: paystackAmount,
+          currency: 'GHS',
+          reference,
+          callback_url: `${process.env.BASE_URL || 'https://unlimiteddatagh.com'}/payment/callback?reference=${reference}`,
+          metadata: {
+            custom_fields: [
+              { display_name: "User ID", variable_name: "user_id", value: userId.toString() },
+              { display_name: "Base Amount", variable_name: "base_amount", value: depositAmount.toString() },
+              { display_name: "User Name", variable_name: "user_name", value: user.name }
+            ]
+          }
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${PAYSTACK_SECRET_KEY}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+      
+      console.log(`✅ Paystack initialization successful: ${reference}`);
+      console.log(`🔗 Payment URL: ${paystackResponse.data.data.authorization_url}`);
+      
+      return res.json({
+        success: true,
+        message: 'Deposit initiated successfully',
+        paystackUrl: paystackResponse.data.data.authorization_url,
         reference,
-        callback_url: `${process.env.BASE_URL || 'https://unlimiteddatagh.com'}/payment/callback?reference=${reference}`,
-        metadata: {
-          custom_fields: [
-            { display_name: "User ID", variable_name: "user_id", value: userId.toString() },
-            { display_name: "Base Amount", variable_name: "base_amount", value: depositAmount.toString() }
-          ]
+        depositInfo: {
+          baseAmount: depositAmount,
+          fee,
+          totalAmount: totalAmountWithFee,
+          paystackAmount: paystackAmount
         }
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${PAYSTACK_SECRET_KEY}`,
-          'Content-Type': 'application/json'
-        }
-      }
-    );
-    return res.json({
-      success: true,
-      message: 'Deposit initiated',
-      paystackUrl: paystackResponse.data.data.authorization_url,
-      reference,
-      depositInfo: {
-        baseAmount: depositAmount,
-        fee,
-        totalAmount: totalAmountWithFee
-      }
-    });
+      });
+      
+    } catch (paystackError) {
+      console.error('❌ Paystack initialization failed:', paystackError.response?.data || paystackError.message);
+      
+      // Update transaction status to failed
+      transaction.status = 'failed';
+      transaction.metadata = {
+        ...transaction.metadata,
+        paystackError: paystackError.response?.data || paystackError.message,
+        failedAt: new Date()
+      };
+      await transaction.save();
+      
+      return res.status(500).json({
+        success: false,
+        error: 'Payment gateway initialization failed',
+        message: 'Unable to initialize payment. Please try again.',
+        code: 'PAYSTACK_INIT_FAILED'
+      });
+    }
   } catch (error) {
-    console.error('Deposit Error:', error);
-    return res.status(500).json({ success: false, error: 'Internal server error' });
+    console.error('❌ Deposit Error:', {
+      message: error.message,
+      stack: error.stack,
+      userId: req.body?.userId,
+      amount: req.body?.amount,
+      email: req.body?.email
+    });
+    
+    return res.status(500).json({ 
+      success: false, 
+      error: 'Internal server error',
+      message: 'An unexpected error occurred. Please try again.',
+      code: 'INTERNAL_SERVER_ERROR'
+    });
   }
 });
 
@@ -515,12 +637,25 @@ router.get('/verify-payment', async (req, res) => {
   try {
     const { reference } = req.query;
     if (!reference) {
-      return res.status(400).json({ success: false, error: 'Reference required' });
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Payment reference is required',
+        code: 'MISSING_REFERENCE'
+      });
     }
+    
+    console.log(`🔍 Verifying payment: ${reference}`);
     const transaction = await Transaction.findOne({ reference });
     if (!transaction) {
-      return res.status(404).json({ success: false, error: 'Transaction not found' });
+      console.log(`❌ Transaction not found: ${reference}`);
+      return res.status(404).json({ 
+        success: false, 
+        error: 'Transaction not found',
+        code: 'TRANSACTION_NOT_FOUND'
+      });
     }
+    
+    console.log(`📊 Transaction status: ${transaction.status} for ${reference}`);
     if (transaction.status === 'completed') {
       return res.json({
         success: true,
@@ -706,6 +841,126 @@ router.get('/admin/fraud-alerts', auth, async (req, res) => {
   } catch (error) {
     console.error('Fraud Alerts Error:', error);
     return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// ✅ TEST DEPOSIT ENDPOINT (for development/testing)
+router.post('/test-deposit', async (req, res) => {
+  try {
+    const { userId, amount, email } = req.body;
+    
+    console.log('🧪 Test deposit request:', { userId, amount, email });
+    
+    // Enhanced validation
+    if (!userId) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'User ID is required',
+        code: 'MISSING_USER_ID'
+      });
+    }
+    
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Invalid user ID format. Must be a valid MongoDB ObjectId.',
+        code: 'INVALID_USER_ID_FORMAT',
+        example: '507f1f77bcf86cd799439011'
+      });
+    }
+    
+    if (!amount || amount <= 0) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Valid amount is required (must be greater than 0)',
+        code: 'INVALID_AMOUNT'
+      });
+    }
+    
+    if (!email || !email.includes('@')) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Valid email address is required',
+        code: 'INVALID_EMAIL'
+      });
+    }
+    
+    // Check if user exists
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ 
+        success: false, 
+        error: 'User not found',
+        code: 'USER_NOT_FOUND',
+        suggestion: 'Make sure the user ID exists in the database'
+      });
+    }
+    
+    // Check account status
+    if (user.isDisabled) {
+      return res.status(403).json({
+        success: false,
+        error: 'Account is disabled',
+        code: 'ACCOUNT_DISABLED',
+        disableReason: user.disableReason
+      });
+    }
+    
+    if (user.approvalStatus === 'pending') {
+      return res.status(403).json({
+        success: false,
+        error: 'Account is pending approval',
+        code: 'ACCOUNT_PENDING'
+      });
+    }
+    
+    if (user.approvalStatus === 'rejected') {
+      return res.status(403).json({
+        success: false,
+        error: 'Account has been rejected',
+        code: 'ACCOUNT_REJECTED'
+      });
+    }
+    
+    const depositAmount = parseFloat(amount);
+    const fee = depositAmount * FEE_PERCENTAGE;
+    const totalAmountWithFee = depositAmount + fee;
+    
+    return res.json({
+      success: true,
+      message: 'Test validation passed',
+      data: {
+        user: {
+          id: user._id,
+          name: user.name,
+          email: user.email,
+          currentBalance: user.walletBalance,
+          isDisabled: user.isDisabled,
+          approvalStatus: user.approvalStatus
+        },
+        deposit: {
+          amount: depositAmount,
+          fee: fee,
+          totalAmount: totalAmountWithFee,
+          paystackAmount: Math.round(totalAmountWithFee * 100)
+        },
+        validation: {
+          userIdValid: true,
+          amountValid: true,
+          emailValid: true,
+          accountActive: true
+        }
+      }
+    });
+    
+  } catch (error) {
+    console.error('❌ Test Deposit Error:', error);
+    return res.status(500).json({ 
+      success: false, 
+      error: 'Internal server error',
+      message: error.message,
+      code: 'INTERNAL_SERVER_ERROR'
+    });
   }
 });
 
