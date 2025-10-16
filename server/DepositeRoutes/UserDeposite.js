@@ -865,11 +865,12 @@ router.post('/create-test-user', async (req, res) => {
       });
     }
     
-    // Create new test user
+    // Create new test user with unique phone number
+    const uniquePhone = phone || `024${Date.now().toString().slice(-7)}`; // Generate unique phone
     const testUser = new User({
       name: name || 'Test User',
       email: email || 'test@example.com',
-      phone: phone || '0240000000',
+      phoneNumber: uniquePhone,
       password: 'test123', // Will be hashed by the schema
       walletBalance: 0,
       approvalStatus: 'approved',
