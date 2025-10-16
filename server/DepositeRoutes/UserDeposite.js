@@ -272,6 +272,7 @@ router.post('/deposit', depositLimiter, async (req, res) => {
           currency: 'GHS',
           reference,
           callback_url: `${process.env.BASE_URL || 'http://localhost:5002'}/api/v1/callback?reference=${reference}`,
+          channels: ['card', 'bank', 'ussd', 'qr', 'mobile_money'], // Enable all payment channels including mobile money
           metadata: {
             custom_fields: [
               { display_name: "User ID", variable_name: "user_id", value: userId.toString() },
