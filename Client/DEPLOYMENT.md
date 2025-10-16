@@ -32,7 +32,7 @@ NEXT_PUBLIC_SOCKET_URL=https://unlimiteddatagh.onrender.com
 NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY=your_paystack_public_key
 NEXT_PUBLIC_ENVIRONMENT=production
 NEXT_PUBLIC_APP_NAME=DataHustle
-NEXT_PUBLIC_APP_URL=https://www.datahustle.shop
+NEXT_PUBLIC_APP_URL=https://unlimiteddatagh.com
 ```
 
 ## Deployment Steps

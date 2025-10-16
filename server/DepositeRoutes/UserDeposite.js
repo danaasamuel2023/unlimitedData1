@@ -187,7 +187,7 @@ router.post('/deposit', depositLimiter, async (req, res) => {
         amount: paystackAmount,
         currency: 'GHS',
         reference,
-        callback_url: `${process.env.BASE_URL || 'https://datahustle.shop'}/payment/callback?reference=${reference}`,
+        callback_url: `${process.env.BASE_URL || 'https://unlimiteddatagh.com'}/payment/callback?reference=${reference}`,
         metadata: {
           custom_fields: [
             { display_name: "User ID", variable_name: "user_id", value: userId.toString() },
@@ -357,7 +357,7 @@ router.get('/callback', async (req, res) => {
         <!DOCTYPE html>
         <html>
           <head>
-            <meta http-equiv="refresh" content="0;url=https://www.datahustle.shop/payment/callback?error=no_reference" />
+            <meta http-equiv="refresh" content="0;url=https://unlimiteddatagh.com/payment/callback?error=no_reference" />
             <title>Redirecting...</title>
           </head>
           <body style="margin:0;padding:0;font-family:Arial,sans-serif;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);display:flex;align-items:center;justify-content:center;min-height:100vh;">
@@ -379,7 +379,7 @@ router.get('/callback', async (req, res) => {
       <!DOCTYPE html>
       <html>
         <head>
-          <meta http-equiv="refresh" content="2;url=https://www.datahustle.shop/payment/callback?reference=${reference}" />
+          <meta http-equiv="refresh" content="2;url=https://unlimiteddatagh.com/payment/callback?reference=${reference}" />
           <title>Processing Payment...</title>
         </head>
         <body style="margin:0;padding:0;font-family:Arial,sans-serif;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);display:flex;align-items:center;justify-content:center;min-height:100vh;">
@@ -393,7 +393,7 @@ router.get('/callback', async (req, res) => {
           <script>
             // Instant redirect after 2 seconds
             setTimeout(() => {
-              window.location.href = 'https://www.datahustle.shop/payment/callback?reference=${reference}';
+              window.location.href = 'https://unlimiteddatagh.com/payment/callback?reference=${reference}';
             }, 2000);
           </script>
         </body>
@@ -471,7 +471,7 @@ router.get('/callback', async (req, res) => {
       <!DOCTYPE html>
       <html>
         <head>
-          <meta http-equiv="refresh" content="2;url=https://www.datahustle.shop/payment/callback?error=processing_error" />
+          <meta http-equiv="refresh" content="2;url=https://unlimiteddatagh.com/payment/callback?error=processing_error" />
           <title>Redirecting...</title>
         </head>
         <body style="margin:0;padding:0;font-family:Arial,sans-serif;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);display:flex;align-items:center;justify-content:center;min-height:100vh;">

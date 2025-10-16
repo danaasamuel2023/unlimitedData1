@@ -26,7 +26,7 @@ export const metadata = {
   openGraph: {
     title: " | Ghana's Premier Data Marketplace",
     description: "Connect with data resellers across Ghana. Buy and sell client data securely on our trusted platform.",
-    url: "https://www.datahustle.shop",
+    url: "https://unlimiteddatagh.com",
     siteName: "DATAHUSTLE", 
     images: [
       {
@@ -46,13 +46,13 @@ export const metadata = {
     images: ["/images/datamart-twitter.jpg"],
   },
   alternates: {
-    canonical: "https://www.datahustle.shop/",
+    canonical: "https://unlimiteddatagh.com/",
   },
   robots: {
     index: true,
     follow: true,
   },
-  metadataBase: new URL("https://www.datahustle.shop"),
+  metadataBase: new URL("https://unlimiteddatagh.com"),
 };
 
 export default function RootLayout({ children }) {
